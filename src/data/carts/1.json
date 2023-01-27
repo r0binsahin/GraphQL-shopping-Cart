@@ -1,0 +1,26 @@
+{
+    "cartId":"1",
+    "cartName":"test updated",
+    "totalPrice": null,
+    "products":[
+    {
+    "productId":"a",
+    "productName":"Notebook",
+    "productPrice":60,
+    "productType":"LOW_PRICE",
+    "productStatus":"IN_STOCK"
+    },
+    {
+        "productId":"b",
+        "productName":"Eraser",
+        "productPrice":25,
+        "productType":"LOW_PRICE",
+        "productStatus":"IN_STOCK"
+        },
+        {"productId":"c",
+        "productName":"Pencil",
+        "productPrice": 30, 
+        "productType":"LOW_PRICE",
+        "productStatus":"IN_STOCK"
+        }]
+    }
