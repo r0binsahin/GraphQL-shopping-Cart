@@ -40,7 +40,7 @@ type Mutation {
   createProduct(input: CreateProductInput!): Product
   deleteProduct(productId: ID!): DeletedResourceResponse
   addProductToCart(cartId: ID!, productId: ID!): Cart
-  deleteProductsFromCart(cartId: ID!, productId: ID!): Cart
+  deleteAllProductsFromCart(cartId: ID!): Cart
   deleteOneProductFromCart(cartId: ID!, productId: ID!): Cart
 }
 

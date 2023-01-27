@@ -176,7 +176,24 @@ exports.resolvers = {
             return parsedCart
         }, 
 
-        deleteProductsFromCart: async (_, args) => {
+        deleteAllProductsFromCart: async (_, args) => {
+
+            const { cartId} = args
+            let cartFilePath = path.join(cartDirectory, `${cartId}.json`)
+
+            let readCart = await fsPromises.readFile(cartFilePath, {encoding: 'utf-8'})
+            let parsedCart = JSON.parse(readCart)
+
+            let productsArray = parsedCart.products
+
+            productsArray.splice(0)
+            
+            await fsPromises.writeFile(cartFilePath, JSON.stringify(parsedCart))
+           
+            return parsedCart
+        }, 
+
+        deleteOneProductFromCart: async (_, args) =>{
 
             const { cartId, productId} = args
             let cartFilePath = path.join(cartDirectory, `${cartId}.json`)
@@ -188,21 +205,22 @@ exports.resolvers = {
             let readProduct = await fsPromises.readFile(productFilePath, {encoding: 'utf-8'})
             let parsedProduct = JSON.parse(readProduct)
 
-            parsedCart.products.splice(parsedProduct)
-            
-          
+            let productsArray = parsedCart.products
+            let pId = parsedProduct.productId
+
+            const removerProductById = (productsArray, pId)=>{
+                const findIndex= productsArray.findIndex((productsArray) => productsArray.productId === pId)  
+                if(findIndex > -1){
+                    productsArray.splice(findIndex, 1)
+                }
+                console.log(productsArray)
+                return productsArray
+            }
+            removerProductById(productsArray, pId)
 
             await fsPromises.writeFile(cartFilePath, JSON.stringify(parsedCart))
-           
-
-            console.log(cartFilePath)
-
 
             return parsedCart
-        }, 
-
-        deleteOneProductFromCart: async (_, args) =>{
-            return null
         }
     }
 }
