@@ -42,6 +42,7 @@ type Mutation {
   addProductToCart(cartId: ID!, productId: ID!): Cart
   deleteAllProductsFromCart(cartId: ID!): Cart
   deleteOneProductFromCart(cartId: ID!, productId: ID!): Cart
+  showTotalprice(cartId: ID!): Cart
 }
 
 input CreateProductInput {
