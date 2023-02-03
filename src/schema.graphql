@@ -1,7 +1,7 @@
 type Cart {
   cartId: ID
   cartName: String
-  totalprice: Int
+  totalPrice: Int
   products: [Product]
 }
 type Product {
@@ -31,6 +31,7 @@ type Query {
   getAllCarts: [Cart]
   getCartById(cartId: ID!): Cart
   getAllProducts: [Product]
+  getProductById(productId: ID!): Product
 }
 
 type Mutation {
@@ -40,9 +41,8 @@ type Mutation {
   createProduct(input: CreateProductInput!): Product
   deleteProduct(productId: ID!): DeletedResourceResponse
   addProductToCart(cartId: ID!, productId: ID!): Cart
-  deleteAllProductsFromCart(cartId: ID!): Cart
+  emptyCart(cartId: ID!): Cart
   deleteOneProductFromCart(cartId: ID!, productId: ID!): Cart
-  showTotalprice(cartId: ID!): Cart
 }
 
 input CreateProductInput {

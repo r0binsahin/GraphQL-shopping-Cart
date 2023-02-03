@@ -12,7 +12,7 @@ const productDirectory = path.join(__dirname, '..', 'data', 'products')
 
 exports.resolvers = {
     Query: {
-        getAllCarts: async (_, args) => {
+        getAllCarts: async (_) => {
 
             const carts = await getDirectoryFileNames(cartDirectory)
 
@@ -33,8 +33,8 @@ exports.resolvers = {
 
             const filePath = path.join(cartDirectory, `${cartId}.json`)
 
-            const projectExists = await fileExists(filePath)
-            if(!projectExists) return new GraphQLError("That cart does not exists!")
+            const cartExists = await fileExists(filePath)
+            if(!cartExists) return new GraphQLError("That cart does not exist!")
 
             const cartData = await fsPromises.readFile(filePath, {encoding: 'utf-8'})
 
@@ -43,7 +43,7 @@ exports.resolvers = {
             return data
         },
 
-        getAllProducts: async (_, args) => {
+        getAllProducts: async () => {
             const products = await getDirectoryFileNames(productDirectory)
             const promises = []
             products.forEach((product) => {
@@ -52,10 +52,25 @@ exports.resolvers = {
              promises.push(readJsonFile(filePath))
             });
 
-
             return promises
 
         },
+
+        getProductById: async (_, args) => {
+
+            const productId = args.productId
+
+            const filePath = path.join(productDirectory, `${productId}.json`)
+
+            const productExists = await fileExists(filePath)
+            if(!productExists) return new GraphQLError("That product does not exist")
+
+            productData = await fsPromises.readFile(filePath, {encoding: 'utf-8'})
+
+            const data = JSON.parse(productData)
+
+            return data
+        }
 
     },
 
@@ -66,7 +81,7 @@ exports.resolvers = {
             const newCart = {
                 cartId: crypto.randomUUID(),
                 cartName : args.cartName,
-                totalPrice: args.totalPrice || '',
+                totalPrice: args.totalPrice || 0,
                 products: args.products || []
             }
 
@@ -82,7 +97,7 @@ exports.resolvers = {
 
         updateCart: async (_, args) => {
 
-            const {cartId, cartName, totalprice, products} = args
+            const {cartId, cartName, totalPrice, products} = args
 
             const filePath = path.join(cartDirectory, `${cartId}.json`)
 
@@ -93,7 +108,7 @@ exports.resolvers = {
             const updatedCart = {
                 cartId,
                 cartName,
-                totalprice,
+                totalPrice,
                 products
             }
 
@@ -184,17 +199,31 @@ exports.resolvers = {
             let readCart = await fsPromises.readFile(cartFilePath, {encoding: 'utf-8'})
             let parsedCart = JSON.parse(readCart)
 
-            let readProduct = await fsPromises.readFile(productFilePath, {encoding: 'utf-8'})
-            let parsedProduct = JSON.parse(readProduct)
+            const productExists = await fileExists(productFilePath)
+            if(productExists) {
+                let readProduct = await fsPromises.readFile(productFilePath, {encoding: 'utf-8'})
+                let parsedProduct = JSON.parse(readProduct)
+                parsedCart.products.push(parsedProduct)
 
-            parsedCart.products.push(parsedProduct)
-    
+                let productsList = parsedCart.products
+                let totalPrice = 0
+                productsList.forEach(product => {
+                    totalPrice += product.productPrice
+                });
+
+                parsedCart.totalPrice = totalPrice
+
+            }
+
+            if(!productExists)  return new GraphQLError("Product does not exists")
+
+        
             await fsPromises.writeFile(cartFilePath, JSON.stringify(parsedCart))
            
             return parsedCart
         }, 
 
-        deleteAllProductsFromCart: async (_, args) => {
+        emptyCart: async (_, args) => {
 
             const { cartId} = args
             let cartFilePath = path.join(cartDirectory, `${cartId}.json`)
@@ -204,7 +233,19 @@ exports.resolvers = {
 
             let productsArray = parsedCart.products
 
+           if (productsArray.length > 0) {
+
             productsArray.splice(0)
+            let totalPrice = 0
+            productsArray.forEach(product => {
+            totalPrice += product.productPrice
+            });
+
+            parsedCart.totalPrice = totalPrice
+
+           } else return new GraphQLError("That cart is already empty")
+
+           
             
             await fsPromises.writeFile(cartFilePath, JSON.stringify(parsedCart))
            
@@ -225,12 +266,22 @@ exports.resolvers = {
             let productsArray = parsedCart.products
             let pId = parsedProduct.productId
 
+      
+
             const removeProductById = (productsArray, pId)=>{
                 const findIndex= productsArray.findIndex((productsArray) => productsArray.productId === pId)  
+               
                 if(findIndex > -1){
                     productsArray.splice(findIndex, 1)
+
+                    let totalPrice = 0
+                    productsArray.forEach(product => {
+                        totalPrice += product.productPrice
+                    });
+    
+                    parsedCart.totalPrice = totalPrice
                 }
-                console.log(productsArray)
+
                 return productsArray
             }
             removeProductById(productsArray, pId)
@@ -238,27 +289,8 @@ exports.resolvers = {
             await fsPromises.writeFile(cartFilePath, JSON.stringify(parsedCart))
 
             return parsedCart
-        },
-        showTotalprice: async (_, args) =>{
-            const { cartId} = args
-            let cartFilePath = path.join(cartDirectory, `${cartId}.json`)
-
-            let readCart = await fsPromises.readFile(cartFilePath, {encoding: 'utf-8'})
-            console.log("2", readCart )
-            let parsedCart = JSON.parse(readCart)
-        
-            const products = parsedCart.products
-
-            let totalP = 0
-            products.forEach((product) =>{
-                totalP += product.productPrice
-            })
-
-            parsedCart.totalprice = totalP
-
-            await fsPromises.writeFile(cartFilePath, JSON.stringify(parsedCart))
-
-            return parsedCart
         }
     }
+
+    
 }
